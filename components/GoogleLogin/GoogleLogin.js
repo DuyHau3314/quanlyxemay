@@ -14,6 +14,7 @@ const Google = (props) => {
     }
   }, []);
   const responseGoogle = (response) => {
+    console.log(response);
     if (response.googleId === '105107137800913112561') {
       setError(null);
       cookies.set('auth', response.googleId);
@@ -27,7 +28,7 @@ const Google = (props) => {
     <div className={classes['text-center']}>
       <h2>Quản lý hàng hoá</h2>
       <GoogleLogin
-        clientId="41977367140-6kq6mvjkeb38f452qa92b5188c6fs5nc.apps.googleusercontent.com"
+        clientId="41977367140-rla219gesktcfh7ji42gjg7n8jta2i3d.apps.googleusercontent.com"
         buttonText="Đăng nhập bằng Google"
         onSuccess={responseGoogle}
         onFailure={responseGoogle}
