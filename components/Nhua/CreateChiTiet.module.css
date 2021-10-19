@@ -1,0 +1,9 @@
+.close {
+  opacity: 0;
+  display: none;
+}
+
+.open {
+  opacity: 1;
+  display: block;
+}
