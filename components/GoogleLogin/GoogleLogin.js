@@ -28,7 +28,7 @@ const Google = (props) => {
     <div className={classes['text-center']}>
       <h2>Quản lý hàng hoá</h2>
       <GoogleLogin
-        clientId="41977367140-rla219gesktcfh7ji42gjg7n8jta2i3d.apps.googleusercontent.com"
+        clientId="41977367140-skd2695gc8h69bmgk3v8ut6282ou5571.apps.googleusercontent.com"
         buttonText="Đăng nhập bằng Google"
         onSuccess={responseGoogle}
         onFailure={responseGoogle}
