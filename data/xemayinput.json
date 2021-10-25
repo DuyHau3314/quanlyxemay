@@ -1,1 +1,59 @@
-{"phutungs":[{"loc gio":[]}]}
+{
+    "phutungs": [
+        {
+            "hehe": []
+        },
+        {
+            "hehehe": [
+                {
+                    "id": "46614016-bbb3-48ec-8dd0-c1a7d9958f4ecw",
+                    "code": "1138f",
+                    "name": "fsd",
+                    "gianhap": 20000,
+                    "giaban": 300000,
+                    "giathay": 40000,
+                    "soluong": 1,
+                    "chuthich": ""
+                },
+                {
+                    "id": "46614016-bbb3-48ec-8dd0-c1a7d9958f4dc",
+                    "code": "1138s",
+                    "name": "fsdss",
+                    "gianhap": 20000,
+                    "giaban": 300000,
+                    "giathay": 40000,
+                    "soluong": 1,
+                    "chuthich": ""
+                }
+            ]
+        },
+        {
+            "loc gio": [
+                {
+                    "id": "46614016-bbb3-48ec-8dd0-c1a7d9958f4e",
+                    "code": "11387",
+                    "name": "fsd",
+                    "gianhap": 20000,
+                    "giaban": 300000,
+                    "giathay": 40000,
+                    "soluong": 1,
+                    "chuthich": ""
+                }
+            ]
+        },
+        {
+            "vanh": [
+                {
+                    "id": "05c1b169-f8f1-40bd-a633-9b2b7364cb7c",
+                    "code": "24689",
+                    "name": "Hau123",
+                    "gianhap": 200000,
+                    "giaban": 300000,
+                    "giathay": 500000,
+                    "soluong": 1,
+                    "chuthich": ""
+                }
+            ]
+        }
+    ]
+}
