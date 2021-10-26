@@ -9,7 +9,7 @@ import ModalLayout from '../ModalLayout/ModalLayout';
 import { ToastContainer, toast } from 'react-toastify';
 import { removeVietnameseTones } from '../../utils/convertString';
 
-const ChiTietNhua = ({ nameRouter, queryNameShow }) => {
+const ChiTietNhua = ({ queryNameShow }) => {
   const router = useRouter();
 
   const [list, setList] = useState([]);
@@ -21,8 +21,8 @@ const ChiTietNhua = ({ nameRouter, queryNameShow }) => {
 
   const getChiTiet = async () => {
     try {
-      const res = await axios.get(`/api/nhua/${nameRouter}`);
-      setList(res.data.list);
+      const res = await axios.get(`/api/nhua/${router.query.id}`);
+      setList(res.data.list.categories);
     } catch (error) {
       console.log(error.response);
     }
@@ -40,87 +40,36 @@ const ChiTietNhua = ({ nameRouter, queryNameShow }) => {
     />
   );
 
-  useEffect(() => {
-    if (router && router.query) {
-      getChiTiet();
-    }
-  }, [router]);
-
-  const sort = (array) => {
-    return array.sort((a, b) =>
-      removeVietnameseTones(a.name).localeCompare(removeVietnameseTones(b.name))
-    );
-  };
-
   const getSearchData = async (name, code) => {
     try {
-      if (name.length > 0 && code.length > 0) {
-        getChiTiet();
-      }
-
       const res = await axios.post(
-        `/api/nhua/chitiet/search/${router.query.name}`,
+        `/api/nhua/chitiet/search/${router.query.id}`,
         {
           name,
           code,
         }
       );
-      setList(res.data);
+      setList(res.data.categories);
     } catch (error) {
       setList([]);
       console.log(error);
     }
   };
 
-  useEffect(() => {
-    if (code.length > 0 || name.length > 0) {
-      getSearchData(name, code);
-    }
-    if (code.length === 0 && name.length === 0) {
-      getChiTiet();
-    }
-  }, [name, code]);
-
-  const reduceAmount = async (item) => {
-    try {
-      const res = await axios.put(
-        `/api/nhua/chitiet/update/${router.query.name}`,
-        {
-          ...item,
-          soluong: item.soluong - 1,
-        }
-      );
-
-      const index = list.findIndex((phutung) => phutung.id === res.data.id);
-
-      list[index] = res.data;
-
-      setList([...list]);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const handleAmount = () => {
-    if (checkAmount) {
-      setCheckAmount(false);
-      getChiTiet();
-    } else {
-      setCheckAmount(true);
-      setList(list.filter((item) => item.soluong <= 3));
-    }
-  };
-
   const handleDelete = async (name, id) => {
     const check = confirm(`Bạn chắc chắn muốn xoá ${name}?`);
-
     if (check) {
       try {
         const res = await axios.delete(
-          `/api/nhua/chitiet/delete/${router.query.name}/${id}`
+          `/api/nhua/chitiet/delete/${router.query.id}`,
+          {
+            data: {
+              id: id,
+            },
+          }
         );
 
-        const newList = list.filter((item) => item.id !== id);
+        const newList = list.filter((item) => item._id.toString() !== id);
 
         setList(newList);
 
@@ -139,12 +88,65 @@ const ChiTietNhua = ({ nameRouter, queryNameShow }) => {
     }
   };
 
+  const reduceAmount = async (item) => {
+    try {
+      const res = await axios.put(
+        `/api/nhua/chitiet/update/${router.query.id}`,
+        {
+          ...item,
+          soluong: item.soluong - 1,
+        }
+      );
+
+      const index = list.findIndex(
+        (phutung) => phutung._id.toString() === res.data._id.toString()
+      );
+
+      list[index] = res.data;
+
+      setList([...list]);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const sort = (array) => {
+    return array.sort((a, b) =>
+      removeVietnameseTones(a.name).localeCompare(removeVietnameseTones(b.name))
+    );
+  };
+
+  const handleAmount = () => {
+    if (checkAmount) {
+      setCheckAmount(false);
+      getChiTiet();
+    } else {
+      setCheckAmount(true);
+      setList(list.filter((item) => item.soluong <= 3));
+    }
+  };
+
+  useEffect(() => {
+    if (router && router.query) {
+      getChiTiet();
+    }
+  }, [router]);
+
+  useEffect(() => {
+    if (code.length > 0 || name.length > 0) {
+      getSearchData(name, code);
+    }
+    if (code.length === 0 && name.length === 0) {
+      getChiTiet();
+    }
+  }, [name, code, router]);
+
   return (
     <Container className="mt-5">
-      <p className="text-center h2 mb-5">{`Danh sách các loại ${queryNameShow.toLowerCase()}`}</p>
+      <p className="text-center h2 mb-5">{`Danh sách các loại ${queryNameShow}`}</p>
       {showModal && (
         <ModalLayout
-          name={router.query.name}
+          id={router.query.id}
           phutung={phutung}
           showModal={showModal}
           setShowModal={setShowModal}
@@ -185,7 +187,12 @@ const ChiTietNhua = ({ nameRouter, queryNameShow }) => {
         <div className="w-25"></div>
       </div>
       <br className="mt-5" />
-      <CreateChiTiet setList={setList} list={list} name={router.query.name} />
+      <CreateChiTiet
+        queryNameShow={queryNameShow}
+        setList={setList}
+        list={list}
+        id={router.query.id}
+      />
       <br />
       <button onClick={handleAmount} className="btn btn-danger mb-3">
         {checkAmount ? 'Đóng hàng sắp hết' : 'Mở hàng sắp hết'}
@@ -205,57 +212,59 @@ const ChiTietNhua = ({ nameRouter, queryNameShow }) => {
           </tr>
         </thead>
         <tbody>
-          {sort(list).map((item, i) => (
-            <tr className="" key={i + item.code}>
-              <th scope="row">{i + 1}</th>
-              <th scope="row">{item.code}</th>
-              <th>{item.name}</th>
-              <td>{convertPrice(item.gianhap)}</td>
-              <td>{convertPrice(item.giaban)}</td>
-              <td>{convertPrice(item.giathay)}</td>
-              <td>{item.soluong}</td>
-              <td>{item.chuthich}</td>
-              <td
-                onClick={() => {
-                  setShowModal(!showModal);
-                  phutung.current = item;
-                }}
-                className="text-warning"
-                style={{
-                  fontWeight: 'bold',
-                  color: '#ec8f49',
-                  cursor: 'pointer',
-                }}
-              >
-                Sửa
-              </td>
-              <td
-                className="text-danger"
-                style={{ fontWeight: 'bold', cursor: 'pointer' }}
-                onClick={() => handleDelete(item.name, item.id)}
-              >
-                Xoá
-              </td>
-              {item.soluong > 0 && (
+          {list.length > 0 &&
+            list.map((item, i) => (
+              <tr className="" key={i + item.code}>
+                <th scope="row">{i + 1}</th>
+                <th scope="row">{item.code}</th>
+                <th>{item.name}</th>
+                <td>{convertPrice(item.gianhap)}</td>
+                <td>{convertPrice(item.giaban)}</td>
+                <td>{convertPrice(item.giathay)}</td>
+                <td>{item.soluong}</td>
+                <td>{item.chuthich}</td>
                 <td
-                  className="text-primary"
+                  onClick={() => {
+                    setShowModal(!showModal);
+                    phutung.current = item;
+                  }}
+                  className="text-warning"
+                  style={{
+                    fontWeight: 'bold',
+                    color: '#ec8f49',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Sửa
+                </td>
+                <td
+                  className="text-danger"
                   style={{ fontWeight: 'bold', cursor: 'pointer' }}
-                  onClick={() => reduceAmount(item)}
+                  onClick={() => handleDelete(item.name, item._id)}
                 >
-                  Mua Hàng
+                  Xoá
                 </td>
-              )}
 
-              {item.soluong === 0 && (
-                <td
-                  className="line-through"
-                  style={{ fontWeight: 'bold', cursor: 'not-allowed' }}
-                >
-                  Hết hàng
-                </td>
-              )}
-            </tr>
-          ))}
+                {item.soluong > 0 && (
+                  <td
+                    className="text-primary"
+                    style={{ fontWeight: 'bold', cursor: 'pointer' }}
+                    onClick={() => reduceAmount(item)}
+                  >
+                    Mua Hàng
+                  </td>
+                )}
+
+                {item.soluong === 0 && (
+                  <td
+                    className="line-through"
+                    style={{ fontWeight: 'bold', cursor: 'not-allowed' }}
+                  >
+                    Hết hàng
+                  </td>
+                )}
+              </tr>
+            ))}
         </tbody>
       </table>
       {list.length === 0 && (

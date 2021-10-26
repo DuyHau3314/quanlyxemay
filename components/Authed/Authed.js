@@ -15,11 +15,6 @@ const Authed = () => {
           </Col>
         </Row>
       </Container>
-
-      <div className={classes.fixed}>
-        <button className="btn btn-primary">Đồng bộ</button>
-        <button className="btn btn-primary mt-3">Khôi phục</button>
-      </div>
     </div>
   );
 };

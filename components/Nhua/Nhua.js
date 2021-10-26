@@ -5,10 +5,10 @@ import axios from 'axios';
 import { removeVietnameseTones } from '../../utils/convertString';
 const Nhua = () => {
   const [name, setName] = useState('');
-  // const [nameUpdate, setNameUpdate] = useState('');
   const [error, setError] = useState(null);
   const [showUpdate, setShowUpdate] = useState(false);
   const [lists, setLists] = useState([]);
+
   const [arrayList, setArrayList] = useState([]);
 
   const handleSubmit = async (e) => {
@@ -22,46 +22,46 @@ const Nhua = () => {
           name: name.trim(),
         });
         setName('');
-        setLists([...lists, res.data.name]);
+
+        setLists([...lists, res.data.moto]);
       }
     } catch (error) {
-      setError(error.response.data.error || 'Lưu loại nhựa lỗi');
+      setError(error.response.data.error || 'Lưu loại cơ khí lỗi');
     }
-  };
-
-  const sort = (array) => {
-    return array.sort((a, b) =>
-      removeVietnameseTones(a).localeCompare(removeVietnameseTones(b))
-    );
   };
 
   const getLists = async () => {
     const res = await axios.get('/api/nhua/read');
-    setLists(res.data.lists);
+    if (!res.data.error) {
+      setLists(res.data.lists);
+    }
   };
 
-  const handleUpdate = async (namePhuTung) => {
+  const handleUpdate = async (id, namenhua) => {
     setShowUpdate(true);
-    const updateName = prompt(`Thay đổi tên ${namePhuTung} thành:`);
+    const updateName = prompt(`Thay đổi tên ${namenhua} thành:`);
     if (!updateName) {
-      console.log(namePhuTung);
+      console.log(namenhua);
     } else {
       const existName = lists.find(
-        (name) =>
-          removeVietnameseTones(name) === removeVietnameseTones(updateName)
+        (item) =>
+          removeVietnameseTones(item.name) === removeVietnameseTones(updateName)
       );
-      const index = lists.findIndex((name) => name === namePhuTung);
+      const index = lists.findIndex((item) => item._id === id);
       if (existName) {
         setError('Tên loại hàng đã tồn tại. Thử lại');
       } else {
         setError(null);
         try {
           const res = await axios.put('/api/nhua/update', {
-            name: namePhuTung,
+            id: id,
             nameUpdate: updateName,
           });
 
-          lists[index] = res.data.name;
+          lists[index].name = res.data.moto.name;
+          lists[index].convertName = removeVietnameseTones(
+            res.data.moto.convertName
+          );
 
           setLists([...lists]);
         } catch (error) {
@@ -71,15 +71,13 @@ const Nhua = () => {
     }
   };
 
-  const handleDelete = async (namePhuTung) => {
+  const handleDelete = async (id) => {
     const check = confirm('Bạn có muốn xoá không?');
     if (check) {
       try {
-        const res = await axios.delete('/api/nhua/delete', {
-          data: { name: namePhuTung },
-        });
+        const res = await axios.delete(`/api/nhua/delete/${id}`);
 
-        const filterLists = lists.filter((i) => i !== res.data.name);
+        const filterLists = lists.filter((i) => i._id !== id);
 
         setLists(filterLists);
       } catch (error) {
@@ -97,11 +95,7 @@ const Nhua = () => {
     setError(null);
 
     let newLists = lists.filter((item) => {
-      if (
-        removeVietnameseTones(item).includes(
-          removeVietnameseTones(e.target.value)
-        )
-      ) {
+      if (item.convertName.includes(removeVietnameseTones(e.target.value))) {
         return item;
       }
     });
@@ -115,43 +109,43 @@ const Nhua = () => {
 
   return (
     <div>
-      <h2 className="mb-3">Các loại nhựa</h2>
+      <h2 className="mb-3">Nhựa xe máy</h2>
       <div style={{ maxHeight: '500px', height: '500px', overflow: 'scroll' }}>
-        <ListGroup>
-          {(arrayList.length === 0 ? sort(lists) : sort(arrayList)).map(
-            (list, i) => (
+        {lists.length > 0 && (
+          <ListGroup>
+            {(arrayList.length === 0 ? lists : arrayList).map((list) => (
               <ListGroup.Item
-                key={removeVietnameseTones(list)}
+                key={list._id}
                 className="h5 d-flex justify-content-between align-items-center"
               >
                 <Link
                   href={{
-                    pathname: `/nhua/${removeVietnameseTones(list)}`,
-                    query: { name: list },
+                    pathname: `/nhua/${list._id}`,
+                    query: { name: list.name },
                   }}
                 >
-                  <a>{list}</a>
+                  <a>{list.name}</a>
                 </Link>
 
                 <div className="d-flex ">
                   <button
-                    onClick={() => handleUpdate(list)}
+                    onClick={() => handleUpdate(list._id, list.name)}
                     className="btn btn-warning"
                   >
                     Sửa
                   </button>
                   <div style={{ width: '.3rem' }}></div>
                   <button
-                    onClick={() => handleDelete(list)}
+                    onClick={() => handleDelete(list._id)}
                     className="btn btn-danger ml-2"
                   >
                     Xoá
                   </button>
                 </div>
               </ListGroup.Item>
-            )
-          )}
-        </ListGroup>
+            ))}
+          </ListGroup>
+        )}
       </div>
       <hr />
       <form onSubmit={handleSubmit}>

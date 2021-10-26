@@ -7,7 +7,7 @@ const ModalLayout = ({
   showModal,
   setShowModal,
   phutung,
-  name,
+  id,
   setList,
   list,
   category,
@@ -20,7 +20,7 @@ const ModalLayout = ({
 
   const checkExist = async (phutungcode, phutungten) => {
     try {
-      const res = await axios.post(`/api/${category}/chitiet/check/${name}`, {
+      const res = await axios.post(`/api/${category}/chitiet/check/${id}`, {
         name: phutungten,
         code: phutungcode,
       });
@@ -98,11 +98,13 @@ const ModalLayout = ({
 
     try {
       const res = await axios.put(
-        `/api/${category}/chitiet/update/${name}`,
+        `/api/${category}/chitiet/update/${id}`,
         product
       );
 
-      const index = list.findIndex((phutung) => phutung.id === res.data.id);
+      const index = list.findIndex(
+        (phutung) => phutung._id.toString() === res.data._id.toString()
+      );
 
       list[index] = res.data;
 

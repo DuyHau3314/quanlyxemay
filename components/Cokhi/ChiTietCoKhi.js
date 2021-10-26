@@ -21,8 +21,8 @@ const ChiTietCoKhi = ({ queryNameShow }) => {
 
   const getChiTiet = async () => {
     try {
-      const res = await axios.get(`/api/phutung/${router.query.name}`);
-      setList(res.data.list);
+      const res = await axios.get(`/api/phutung/${router.query.id}`);
+      setList(res.data.list.categories);
     } catch (error) {
       console.log(error.response);
     }
@@ -43,13 +43,13 @@ const ChiTietCoKhi = ({ queryNameShow }) => {
   const getSearchData = async (name, code) => {
     try {
       const res = await axios.post(
-        `/api/phutung/chitiet/search/${router.query.name}`,
+        `/api/phutung/chitiet/search/${router.query.id}`,
         {
           name,
           code,
         }
       );
-      setList(res.data);
+      setList(res.data.categories);
     } catch (error) {
       setList([]);
       console.log(error);
@@ -61,10 +61,15 @@ const ChiTietCoKhi = ({ queryNameShow }) => {
     if (check) {
       try {
         const res = await axios.delete(
-          `/api/phutung/chitiet/delete/${router.query.name}/${id}`
+          `/api/phutung/chitiet/delete/${router.query.id}`,
+          {
+            data: {
+              id: id,
+            },
+          }
         );
 
-        const newList = list.filter((item) => item.id !== id);
+        const newList = list.filter((item) => item._id.toString() !== id);
 
         setList(newList);
 
@@ -86,14 +91,16 @@ const ChiTietCoKhi = ({ queryNameShow }) => {
   const reduceAmount = async (item) => {
     try {
       const res = await axios.put(
-        `/api/phutung/chitiet/update/${router.query.name}`,
+        `/api/phutung/chitiet/update/${router.query.id}`,
         {
           ...item,
           soluong: item.soluong - 1,
         }
       );
 
-      const index = list.findIndex((phutung) => phutung.id === res.data.id);
+      const index = list.findIndex(
+        (phutung) => phutung._id.toString() === res.data._id.toString()
+      );
 
       list[index] = res.data;
 
@@ -139,7 +146,7 @@ const ChiTietCoKhi = ({ queryNameShow }) => {
       <p className="text-center h2 mb-5">{`Danh sách các loại ${queryNameShow}`}</p>
       {showModal && (
         <ModalLayout
-          name={router.query.name}
+          id={router.query.id}
           phutung={phutung}
           showModal={showModal}
           setShowModal={setShowModal}
@@ -184,7 +191,7 @@ const ChiTietCoKhi = ({ queryNameShow }) => {
         queryNameShow={queryNameShow}
         setList={setList}
         list={list}
-        name={router.query.name}
+        id={router.query.id}
       />
       <br />
       <button onClick={handleAmount} className="btn btn-danger mb-3">
@@ -205,58 +212,59 @@ const ChiTietCoKhi = ({ queryNameShow }) => {
           </tr>
         </thead>
         <tbody>
-          {sort(list).map((item, i) => (
-            <tr className="" key={i + item.code}>
-              <th scope="row">{i + 1}</th>
-              <th scope="row">{item.code}</th>
-              <th>{item.name}</th>
-              <td>{convertPrice(item.gianhap)}</td>
-              <td>{convertPrice(item.giaban)}</td>
-              <td>{convertPrice(item.giathay)}</td>
-              <td>{item.soluong}</td>
-              <td>{item.chuthich}</td>
-              <td
-                onClick={() => {
-                  setShowModal(!showModal);
-                  phutung.current = item;
-                }}
-                className="text-warning"
-                style={{
-                  fontWeight: 'bold',
-                  color: '#ec8f49',
-                  cursor: 'pointer',
-                }}
-              >
-                Sửa
-              </td>
-              <td
-                className="text-danger"
-                style={{ fontWeight: 'bold', cursor: 'pointer' }}
-                onClick={() => handleDelete(item.name, item.id)}
-              >
-                Xoá
-              </td>
-
-              {item.soluong > 0 && (
+          {list.length > 0 &&
+            list.map((item, i) => (
+              <tr className="" key={i + item.code}>
+                <th scope="row">{i + 1}</th>
+                <th scope="row">{item.code}</th>
+                <th>{item.name}</th>
+                <td>{convertPrice(item.gianhap)}</td>
+                <td>{convertPrice(item.giaban)}</td>
+                <td>{convertPrice(item.giathay)}</td>
+                <td>{item.soluong}</td>
+                <td>{item.chuthich}</td>
                 <td
-                  className="text-primary"
+                  onClick={() => {
+                    setShowModal(!showModal);
+                    phutung.current = item;
+                  }}
+                  className="text-warning"
+                  style={{
+                    fontWeight: 'bold',
+                    color: '#ec8f49',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Sửa
+                </td>
+                <td
+                  className="text-danger"
                   style={{ fontWeight: 'bold', cursor: 'pointer' }}
-                  onClick={() => reduceAmount(item)}
+                  onClick={() => handleDelete(item.name, item._id)}
                 >
-                  Mua Hàng
+                  Xoá
                 </td>
-              )}
 
-              {item.soluong === 0 && (
-                <td
-                  className="line-through"
-                  style={{ fontWeight: 'bold', cursor: 'not-allowed' }}
-                >
-                  Hết hàng
-                </td>
-              )}
-            </tr>
-          ))}
+                {item.soluong > 0 && (
+                  <td
+                    className="text-primary"
+                    style={{ fontWeight: 'bold', cursor: 'pointer' }}
+                    onClick={() => reduceAmount(item)}
+                  >
+                    Mua Hàng
+                  </td>
+                )}
+
+                {item.soluong === 0 && (
+                  <td
+                    className="line-through"
+                    style={{ fontWeight: 'bold', cursor: 'not-allowed' }}
+                  >
+                    Hết hàng
+                  </td>
+                )}
+              </tr>
+            ))}
         </tbody>
       </table>
       {list.length === 0 && (

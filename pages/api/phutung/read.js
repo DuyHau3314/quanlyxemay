@@ -1,39 +1,10 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import fs from 'fs';
-import path from 'path';
+import { read } from '../../../mongo/phutung/read';
+import connectDB from '../../../middleware/mongodb';
 
-export default function saveCategory(req, res) {
-  const filePathInput = path.join(process.cwd(), 'data', 'xemayinput.json');
+connectDB();
 
-  const readPhuTung = () => {
-    let readerStream = fs.createReadStream(filePathInput);
-    let data = '';
-
-    readerStream.setEncoding('utf8');
-
-    readerStream.on('data', function (chunk) {
-      data += chunk;
-    });
-
-    readerStream.on('end', async function () {
-      const objArray = JSON.parse(data);
-
-      const nameArray = objArray.phutungs.map((obj) => Object.keys(obj)[0]);
-
-      return res.json({ lists: nameArray });
-    });
-
-    readerStream.on('error', function (err) {
-      console.log(err.stack);
-      return res.json({ error: err.message });
-    });
-  };
-
+export default function listCategory(req, res) {
   if (req.method === 'GET') {
-    try {
-      readPhuTung();
-    } catch (error) {
-      return res.json({ error: 'Server Error' });
-    }
+    read(req, res);
   }
 }

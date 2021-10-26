@@ -1,8 +1,25 @@
+# version: '3'
+# services:
+#   nextjs:
+#     build: ./
+#   nginx:
+#     build: ./nginx
+#     ports:
+#       - 80:80
+
 version: '3'
 services:
   nextjs:
-    build: ./
-  nginx:
-    build: ./nginx
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
     ports:
-      - 80:80
+      - 3000:3000
+    volumes:
+      - /usr/app/node_modules
+      - .:/usr/app
+  mongo-server:
+    image: mongo
+    ports:
+      - 27017:27017
+    restart: unless-stopped

@@ -5,7 +5,10 @@ import NumberFormat from 'react-number-format';
 import axios from 'axios';
 import numeral from 'numeral';
 import { v4 as uuid4 } from 'uuid';
-const CreateChiTiet = ({ name, list, setList, queryNameShow }) => {
+import { useRouter } from 'next/router';
+import { removeVietnameseTones } from '../../utils/convertString';
+const CreateChiTiet = ({ id, list, setList, queryNameShow }) => {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [disabled, setDisabled] = useState(true);
   const [error, setError] = useState(null);
@@ -13,6 +16,7 @@ const CreateChiTiet = ({ name, list, setList, queryNameShow }) => {
     id: '',
     code: '',
     name: '',
+    convertName: '',
     gianhap: undefined,
     giaban: undefined,
     giathay: undefined,
@@ -26,7 +30,7 @@ const CreateChiTiet = ({ name, list, setList, queryNameShow }) => {
 
   const checkExist = async (phutungcode, phutungten) => {
     try {
-      const res = await axios.post(`/api/phutung/chitiet/check/${name}`, {
+      const res = await axios.post(`/api/phutung/chitiet/check/${id}`, {
         name: phutungten,
         code: phutungcode,
       });
@@ -105,11 +109,17 @@ const CreateChiTiet = ({ name, list, setList, queryNameShow }) => {
         giathay: '',
         soluong: 0,
         chuthich: '',
+        convertName: '',
       });
-      const res = await axios.post(`/api/phutung/chitiet/save/${name}`, {
-        ...product,
-        id: uuid4().toString(),
-      });
+      const res = await axios.post(
+        `/api/phutung/chitiet/save/${router.query.id}`,
+        {
+          product: {
+            ...product,
+            convertName: removeVietnameseTones(product.name),
+          },
+        }
+      );
 
       setList([...list, res.data]);
       setDisabled(true);
